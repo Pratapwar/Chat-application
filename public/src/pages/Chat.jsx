@@ -31,7 +31,15 @@ export default function Chat() {
     if (currentUser) {
       socket.current = io(host);
       socket.current.emit("add-user", currentUser._id);
+      socket.current.on("receive-message", (message) => {
+      });
     }
+    
+    return () => {
+      if (socket.current) {
+        socket.current.disconnect();
+      }
+    };
   }, [currentUser]);
 
   useEffect(() => {
@@ -49,12 +57,9 @@ export default function Chat() {
     fetchContacts();
   }, [currentUser, navigate]);
 
-  useEffect(() => {
-    const handleChatChange = (chat) => {
-      setCurrentChat(chat);
-    };
-    handleChatChange();
-  } , [currentChat]);
+  const handleChatChange = (chat) => {
+    setCurrentChat(chat);
+  };
   const handleLogout = () => {
     localStorage.removeItem(process.env.REACT_APP_LOCALHOST_KEY);
     navigate("/login");
