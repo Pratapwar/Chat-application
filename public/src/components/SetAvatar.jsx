@@ -21,49 +21,66 @@ export default function SetAvatar() {
     theme: "dark",
   };
 
-  useEffect(async () => {
-    if (!localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY))
-      navigate("/login");
-  }, []);
+  useEffect(() => {
+    const checkAuth = () => {
+      if (!localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)) {
+        navigate("/login");
+      }
+    };
+    checkAuth();
+  }, [navigate]);
+
+  useEffect(() => {
+    const fetchAvatars = async () => {
+      try {
+        const data = [];
+        for (let i = 0; i < 4; i++) {
+          const image = await axios.get(
+            `${api}/${Math.round(Math.random() * 1000)}`
+          );
+          const buffer = Buffer.from(image.data);
+          data.push(buffer.toString("base64"));
+        }
+        setAvatars(data);
+      } catch (error) {
+        console.error("Error fetching avatars:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchAvatars();
+  }, [api]);
 
   const setProfilePicture = async () => {
     if (selectedAvatar === undefined) {
       toast.error("Please select an avatar", toastOptions);
     } else {
-      const user = await JSON.parse(
-        localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
-      );
-
-      const { data } = await axios.post(`${setAvatarRoute}/${user._id}`, {
-        image: avatars[selectedAvatar],
-      });
-
-      if (data.isSet) {
-        user.isAvatarImageSet = true;
-        user.avatarImage = data.image;
-        localStorage.setItem(
-          process.env.REACT_APP_LOCALHOST_KEY,
-          JSON.stringify(user)
+      try {
+        const user = JSON.parse(
+          localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
         );
-        navigate("/");
-      } else {
+
+        const { data } = await axios.post(`${setAvatarRoute}/${user._id}`, {
+          image: avatars[selectedAvatar],
+        });
+
+        if (data.isSet) {
+          user.isAvatarImageSet = true;
+          user.avatarImage = data.image;
+          localStorage.setItem(
+            process.env.REACT_APP_LOCALHOST_KEY,
+            JSON.stringify(user)
+          );
+          navigate("/");
+        } else {
+          toast.error("Error setting avatar. Please try again.", toastOptions);
+        }
+      } catch (error) {
+        console.error("Error setting profile picture:", error);
         toast.error("Error setting avatar. Please try again.", toastOptions);
       }
     }
   };
-
-  useEffect(async () => {
-    const data = [];
-    for (let i = 0; i < 4; i++) {
-      const image = await axios.get(
-        `${api}/${Math.round(Math.random() * 1000)}`
-      );
-      const buffer = new Buffer(image.data);
-      data.push(buffer.toString("base64"));
-    }
-    setAvatars(data);
-    setIsLoading(false);
-  }, []);
   return (
     <>
       {isLoading ? (
