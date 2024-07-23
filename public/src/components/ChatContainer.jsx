@@ -36,14 +36,14 @@ export default function ChatContainer({ currentChat, socket }) {
     const handleMessage = (msg) => {
       setArrivalMessage({ fromSelf: false, message: msg });
     };
-
-    if (socket.current) {
-      socket.current.on("msg-recieve", handleMessage);
+    const currentSocket = socket.current;
+    if (currentSocket) {
+      currentSocket.on("msg-recieve", handleMessage);
     }
 
     return () => {
-      if (socket.current) {
-        socket.current.off("msg-recieve", handleMessage);
+      if (currentSocket) {
+        currentSocket.off("msg-recieve", handleMessage);
       }
     };
   }, [socket]);
