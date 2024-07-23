@@ -49,10 +49,12 @@ export default function Chat() {
     fetchContacts();
   }, [currentUser, navigate]);
 
-  const handleChatChange = (chat) => {
-    setCurrentChat(chat);
-  };
-
+  useEffect(() => {
+    const handleChatChange = (chat) => {
+      setCurrentChat(chat);
+    };
+    handleChatChange();
+  } , [currentChat]);
   const handleLogout = () => {
     localStorage.removeItem(process.env.REACT_APP_LOCALHOST_KEY);
     navigate("/login");
