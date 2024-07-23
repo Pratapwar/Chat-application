@@ -13,14 +13,18 @@ export default function ChatContainer({ currentChat, socket }) {
 
   useEffect(() => {
     const fetchMessages = async () => {
-      const data = JSON.parse(
-        localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
-      );
-      const response = await axios.post(recieveMessageRoute, {
-        from: data._id,
-        to: currentChat._id,
-      });
-      setMessages(response.data);
+      try {
+        const data = JSON.parse(
+          localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
+        );
+        const response = await axios.post(recieveMessageRoute, {
+          from: data._id,
+          to: currentChat._id,
+        });
+        setMessages(response.data);
+      } catch (error) {
+        console.error("Failed to fetch messages:", error);
+      }
     };
 
     if (currentChat) {
@@ -55,25 +59,27 @@ export default function ChatContainer({ currentChat, socket }) {
   }, [messages]);
 
   const handleSendMsg = async (msg) => {
-    const data = JSON.parse(
-      localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
-    );
-    socket.current.emit("send-msg", {
-      to: currentChat._id,
-      from: data._id,
-      msg,
-    });
-    await axios.post(sendMessageRoute, {
-      from: data._id,
-      to: currentChat._id,
-      message: msg,
-    });
+    try {
+      const data = JSON.parse(
+        localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
+      );
+      socket.current.emit("send-msg", {
+        to: currentChat._id,
+        from: data._id,
+        msg,
+      });
 
-    const msgs = [...messages];
-    msgs.push({ fromSelf: true, message: msg });
-    setMessages(msgs);
+      await axios.post(sendMessageRoute, {
+        from: data._id,
+        to: currentChat._id,
+        message: msg,
+      });
+
+      setMessages((prev) => [...prev, { fromSelf: true, message: msg }]);
+    } catch (error) {
+      console.error("Failed to send message:", error);
+    }
   };
-
   return (
     <Container>
       <div className="chat-header">
