@@ -10,7 +10,7 @@ export default function ChatContainer({ currentChat, socket }) {
   const [messages, setMessages] = useState([]);
   const scrollRef = useRef();
   const [arrivalMessage, setArrivalMessage] = useState(null);
-
+// Fetch messages from the server whenever currentChat changes.
   useEffect(() => {
     const fetchMessages = async () => {
       try {
@@ -31,7 +31,7 @@ export default function ChatContainer({ currentChat, socket }) {
       fetchMessages();
     }
   }, [currentChat]);
-
+//Listen for incoming messages via a WebSocket connection.
   useEffect(() => {
     const handleMessage = (msg) => {
       setArrivalMessage({ fromSelf: false, message: msg });
@@ -47,17 +47,17 @@ export default function ChatContainer({ currentChat, socket }) {
       }
     };
   }, [socket]);
-
+//Update the messages state when a new message arrives.
   useEffect(() => {
     if (arrivalMessage) {
       setMessages((prev) => [...prev, arrivalMessage]);
     }
   }, [arrivalMessage]);
-
+  //Automatically scroll to the latest message when the messages state changes.
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-
+// Send a message to the server and update the local state.
   const handleSendMsg = async (msg) => {
     try {
       const data = JSON.parse(
